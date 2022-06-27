@@ -40,9 +40,9 @@ type Detail struct {
 	Temperature string `json:"sampleTemperature"`
 }
 
-func (d Detail) Date() string {
+func (d Detail) Date() time.Time {
 	tm := time.Unix(d.SampleDate/1000, 0)
-	return tm.Format(time.RFC3339)
+	return tm
 }
 
 type DetailWithTestResults struct {
@@ -84,7 +84,7 @@ type CoperSmhi struct {
 	MeasHour string `json:"measHour"`
 }
 
-func (c CoperSmhi) Date() (string, bool) {
+func (c CoperSmhi) Date() (time.Time, bool) {
 	if hour, err := strconv.Atoi(c.MeasHour); err == nil {
 		year := time.Now().Year()
 		month := time.Now().Month()
@@ -92,9 +92,9 @@ func (c CoperSmhi) Date() (string, bool) {
 		loc := time.Local
 		m := time.Date(year, month, day, hour, 0, 0, 0, loc)
 
-		return m.Format(time.RFC3339), true
+		return m, true
 	}
-	return "", false
+	return time.Time{}, false
 }
 
 var tracer = otel.Tracer("integration-cip-havochvatten")

@@ -82,10 +82,9 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 		if err != nil {
 			if !errors.Is(err, ngsierrors.ErrAlreadyExists) {
 				log.Error().Err(err).Msg("failed to create wqo entity")
-				//continue
+			} else {
+				err = nil
 			}
-
-			err = nil
 		}
 
 		for _, c := range profile.CoperSmhi {

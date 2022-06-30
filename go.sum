@@ -55,8 +55,8 @@ github.com/cncf/xds/go v0.0.0-20211011173535-cb28da3451f1/go.mod h1:eXthEFrGJvWH
 github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/diwise/context-broker v0.0.0-20220616115237-a37ada0d1edf h1:5LcUpUwpgz7V3LVSgwq+lLSrthxZDaaVCzn/2nHCuPY=
-github.com/diwise/context-broker v0.0.0-20220616115237-a37ada0d1edf/go.mod h1:hEIWELN892bPSYGSOfxtUHOJ4FZJ056+K8Pxrqp5i0I=
+github.com/diwise/context-broker v0.0.0-20220630194749-9dc18eac8779 h1:tQ3YJxFovMhEud1Gg6T21PE8n1LJ6xBXf8rxsbXYagQ=
+github.com/diwise/context-broker v0.0.0-20220630194749-9dc18eac8779/go.mod h1:hEIWELN892bPSYGSOfxtUHOJ4FZJ056+K8Pxrqp5i0I=
 github.com/diwise/service-chassis v0.0.0-20220609153321-22f72f7f5e21 h1:slCX3+Ni152fJdkiyGe2sjxzu9TvClfmQZ3JV+lXFmQ=
 github.com/diwise/service-chassis v0.0.0-20220609153321-22f72f7f5e21/go.mod h1:qx+MPhTkgmRCAAaqX66aaglFZHMA8/JoAHbT4dYJuGA=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
@@ -149,6 +149,7 @@ github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+o
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/matryer/is v1.4.0 h1:sosSmIWwkYITGrxZ25ULNDeKiMNzFSr4V/eqBQP0PeE=
 github.com/mattn/go-colorable v0.1.12 h1:jF+Du6AlPIjs2BiUiQlKOX0rt3SujHxPnksPKZbaA40=
 github.com/mattn/go-colorable v0.1.12/go.mod h1:u5H1YNBxpqRaxsYJYSkiCWKzEfiAb1Gb520KVy5xxl4=
 github.com/mattn/go-isatty v0.0.14 h1:yVuAays6BHfxijgZPzw+3Zlu5yQgKGP2/hcQbHb7S9Y=

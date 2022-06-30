@@ -40,7 +40,12 @@ func New(h havochvatten.HovClient, cb client.ContextBrokerClient) App {
 func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []NutsCode) error {
 	log := logging.GetFromContext(ctx)
 
-	for _, nutsCode := range nutsCodes() {
+	for idx, nutsCode := range nutsCodes() {
+		if idx > 0 {
+			log.Info().Msgf("sleeping to prevent rate limiting ...")
+			time.Sleep(2 * time.Second)
+		}
+
 		log.Info().Msgf("creating wqo entities for beach %s", nutsCode)
 
 		detail, err := a.h.Detail(ctx, string(nutsCode))
@@ -112,9 +117,6 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 				}
 			}
 		}
-
-		log.Info().Msgf("sleeping to prevent rate limiting ...")
-		time.Sleep(2 * time.Second)
 	}
 
 	return nil

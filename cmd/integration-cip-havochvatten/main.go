@@ -28,6 +28,10 @@ func main() {
 	havOchVattenApiUrl := env.GetVariableOrDefault(logger, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
 	contextBrokerUrl := env.GetVariableOrDie(logger, "CONTEXT_BROKER_URL", "context broker URL")
 
+	if nutsCodes == "" {
+		logger.Fatal().Msg("at least one nutscode must be specified with -nutscodes")
+	}
+
 	hovClient := havochvatten.New(havOchVattenApiUrl)
 	contextbroker := client.NewContextBrokerClient(contextBrokerUrl)
 

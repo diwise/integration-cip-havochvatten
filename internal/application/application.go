@@ -75,7 +75,7 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 		}
 
 		wqob, _ := json.Marshal(wqo)
-		log.Info().Msgf("creating entity: %s", string(wqob))
+		log.Debug().Msgf("creating entity: %s", string(wqob))
 
 		headers := map[string][]string{"Content-Type": {"application/ld+json"}}
 		_, err = a.cb.CreateEntity(ctx, wqo, headers)
@@ -84,6 +84,7 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 				log.Error().Err(err).Msg("failed to create wqo entity")
 			} else {
 				err = nil
+				log.Debug().Msg("entity already existed")
 			}
 		}
 
@@ -97,7 +98,7 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 					}
 
 					wqob, _ = json.Marshal(wqo)
-					log.Info().Msgf("creating entity: %s", string(wqob))
+					log.Debug().Msgf("creating entity: %s", string(wqob))
 
 					_, err = a.cb.CreateEntity(ctx, wqo, headers)
 					if err != nil {
@@ -105,7 +106,7 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 							log.Error().Err(err).Msg("failed to create wqo entity")
 						} else {
 							err = nil
-							log.Info().Msg("entity already existed")
+							log.Debug().Msg("entity already existed")
 						}
 					}
 				}

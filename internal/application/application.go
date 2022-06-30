@@ -2,6 +2,8 @@ package application
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/diwise/context-broker/pkg/datamodels/fiware"
 	"github.com/diwise/context-broker/pkg/ngsild/client"
+	ngsierrors "github.com/diwise/context-broker/pkg/ngsild/errors"
 	"github.com/diwise/context-broker/pkg/ngsild/types"
 	"github.com/diwise/context-broker/pkg/ngsild/types/entities"
 	. "github.com/diwise/context-broker/pkg/ngsild/types/entities/decorators"
@@ -46,15 +49,22 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 			continue
 		}
 
+		log.Info().Msgf("%s is %s", nutsCode, detail.Name)
+
+		if detail.Temperature == nil {
+			log.Info().Msg("temperature has not been sampled for this beach")
+			continue
+		}
+
 		profile, err := a.h.BathWaterProfile(ctx, string(nutsCode))
 		if err != nil {
 			log.Error().Err(err).Msg("failed to get BathWaterProfile")
 			continue
 		}
 
-		t, err := strconv.ParseFloat(detail.Temperature, 64)
+		t, err := strconv.ParseFloat(*detail.Temperature, 64)
 		if err != nil {
-			log.Error().Err(err).Msgf("failed to convert temperature value %s", detail.Temperature)
+			log.Error().Err(err).Msgf("failed to convert temperature value %s", *detail.Temperature)
 			continue
 		}
 
@@ -64,11 +74,18 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 			continue
 		}
 
+		wqob, _ := json.Marshal(wqo)
+		log.Info().Msgf("creating entity: %s", string(wqob))
+
 		headers := map[string][]string{"Content-Type": {"application/ld+json"}}
 		_, err = a.cb.CreateEntity(ctx, wqo, headers)
 		if err != nil {
-			log.Error().Err(err).Msg("failed to create wqo entity")
-			continue
+			if !errors.Is(err, ngsierrors.ErrAlreadyExists) {
+				log.Error().Err(err).Msg("failed to create wqo entity")
+				//continue
+			}
+
+			err = nil
 		}
 
 		for _, c := range profile.CoperSmhi {
@@ -79,14 +96,25 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 						log.Error().Err(err).Msg("could not construct WaterQualityObserved")
 						continue
 					}
+
+					wqob, _ = json.Marshal(wqo)
+					log.Info().Msgf("creating entity: %s", string(wqob))
+
 					_, err = a.cb.CreateEntity(ctx, wqo, headers)
 					if err != nil {
-						log.Error().Err(err).Msg("faailed to create wqo entity")
-						continue
+						if !errors.Is(err, ngsierrors.ErrAlreadyExists) {
+							log.Error().Err(err).Msg("failed to create wqo entity")
+						} else {
+							err = nil
+							log.Info().Msg("entity already existed")
+						}
 					}
 				}
 			}
 		}
+
+		log.Info().Msgf("sleeping to prevent rate limiting ...")
+		time.Sleep(2 * time.Second)
 	}
 
 	return nil
@@ -101,7 +129,8 @@ func newWaterQualityObserved(observationID string, latitude float64, longitude f
 		observationID = fiware.WaterQualityObservedIDPrefix + observationID
 	}
 
-	observationID = observationID + ":" + strings.ReplaceAll(observedAt.Format(time.RFC3339), " ", "")
+	const RFC3339WithoutHyphensAndColons string = "20060102T150405Z07:00"
+	observationID = observationID + ":" + strings.ReplaceAll(observedAt.Format(RFC3339WithoutHyphensAndColons), " ", "")
 
 	decorators = append(decorators, entities.DefaultContext(), DateObserved(observedAt.Format(time.RFC3339)), Location(latitude, longitude))
 

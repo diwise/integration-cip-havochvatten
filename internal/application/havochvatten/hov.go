@@ -33,16 +33,19 @@ func (h hovClient) ApiUrl() string {
 }
 
 type Detail struct {
-	NutsCode    string `json:"nutsCode"`
-	Name        string `json:"locationName"`
-	Area        string `json:"locationArea"`
-	Description string `json:"bathInformation"`
-	SampleDate  int64  `json:"sampleDate"`
-	Temperature string `json:"sampleTemperature"`
+	NutsCode    string  `json:"nutsCode"`
+	Name        string  `json:"locationName"`
+	Area        string  `json:"locationArea"`
+	Description string  `json:"bathInformation"`
+	SampleDate  *int64  `json:"sampleDate"`
+	Temperature *string `json:"sampleTemperature"`
 }
 
 func (d Detail) Date() time.Time {
-	return time.Unix(d.SampleDate/1000, 0)
+	if d.Temperature == nil {
+		return time.Time{}
+	}
+	return time.Unix(*d.SampleDate/1000, 0)
 }
 
 type TestResult struct {

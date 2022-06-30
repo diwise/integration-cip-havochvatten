@@ -38,34 +38,37 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 	log := logging.GetFromContext(ctx)
 
 	for _, nutsCode := range nutsCodes() {
+		log.Info().Msgf("creating wqo entities for beach %s", nutsCode)
+
 		detail, err := a.h.Detail(ctx, string(nutsCode))
 		if err != nil {
-			log.Info().Msgf("could not get details for %s because %s", nutsCode, err.Error())
+			log.Error().Err(err).Msg("failed to get details")
 			continue
 		}
 
 		profile, err := a.h.BathWaterProfile(ctx, string(nutsCode))
 		if err != nil {
-			log.Info().Msgf("could not get BathWaterProfile for %s because %s", nutsCode, err.Error())
+			log.Error().Err(err).Msg("failed to get BathWaterProfile")
 			continue
 		}
 
 		t, err := strconv.ParseFloat(detail.Temperature, 64)
 		if err != nil {
-			log.Info().Msgf("could not convert temperature for %s because %s", nutsCode, err.Error())
+			log.Error().Err(err).Msgf("failed to convert temperature value %s", detail.Temperature)
 			continue
 		}
 
 		wqo, err := newWaterQualityObserved(profile.NutsCode, profile.Lat, profile.Long, detail.Date(), Temperature(t), Text("source", a.h.ApiUrl()))
 		if err != nil {
-			log.Info().Msgf("could not create WaterQualityObserved for %s because %s", nutsCode, err.Error())
+			log.Error().Err(err).Msg("failed to construct a new WaterQualityObserved")
 			continue
 		}
 
 		headers := map[string][]string{"Content-Type": {"application/ld+json"}}
 		_, err = a.cb.CreateEntity(ctx, wqo, headers)
 		if err != nil {
-			log.Info().Msgf("could not create entity for %s because %s", nutsCode, err.Error())
+			log.Error().Err(err).Msg("failed to create wqo entity")
+			continue
 		}
 
 		for _, c := range profile.CoperSmhi {
@@ -73,12 +76,12 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 				if t, err := strconv.ParseFloat(c.CopernicusData, 64); err == nil {
 					wqo, err = newWaterQualityObserved(profile.NutsCode, profile.Lat, profile.Long, date, Temperature(t), Text("source", "https://www.smhi.se/"))
 					if err != nil {
-						log.Info().Msgf("could not create WaterQualityObserved for %s because %s", nutsCode, err.Error())
+						log.Error().Err(err).Msg("could not construct WaterQualityObserved")
 						continue
 					}
 					_, err = a.cb.CreateEntity(ctx, wqo, headers)
 					if err != nil {
-						log.Info().Msgf("could not create entity for %s because %s", nutsCode, err.Error())
+						log.Error().Err(err).Msg("faailed to create wqo entity")
 						continue
 					}
 				}

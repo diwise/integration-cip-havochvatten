@@ -13,9 +13,10 @@ import (
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y"
 )
 
+const serviceName string = "integration-cip-havochvatten"
+
 func main() {
 	serviceVersion := buildinfo.SourceVersion()
-	serviceName := "integration-cip-havochvatten"
 
 	ctx, logger, cleanup := o11y.Init(context.Background(), serviceName, serviceVersion)
 	defer cleanup()
@@ -24,8 +25,8 @@ func main() {
 	flag.StringVar(&nutsCodes, "nutscodes", "", "-nutscodes=SE00000,SE00001,SE00002")
 	flag.Parse()
 
-	havOchVattenApiUrl := env.GetVariableOrDefault(logger, "HAVOCHVATTEN_API", "https://badplatsen.havochvatten.se/badplatsen/api")
-	contextBrokerUrl := env.GetVariableOrDefault(logger, "CONTEXT_BROKER", "http://localhost:1026")
+	havOchVattenApiUrl := env.GetVariableOrDefault(logger, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
+	contextBrokerUrl := env.GetVariableOrDie(logger, "CONTEXT_BROKER_URL", "context broker URL")
 
 	hovClient := havochvatten.New(havOchVattenApiUrl)
 	contextbroker := client.NewContextBrokerClient(contextBrokerUrl)
@@ -42,5 +43,4 @@ func main() {
 
 		return codes
 	})
-
 }

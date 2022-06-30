@@ -9,11 +9,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("integration-cip-havochvatten")
 
 type HovClient interface {
 	Details(ctx context.Context) ([]Detail, error)
@@ -41,13 +42,7 @@ type Detail struct {
 }
 
 func (d Detail) Date() time.Time {
-	tm := time.Unix(d.SampleDate/1000, 0)
-	return tm
-}
-
-type DetailWithTestResults struct {
-	Detail
-	TestResults []TestResult `json:"testResult"`
+	return time.Unix(d.SampleDate/1000, 0)
 }
 
 type TestResult struct {
@@ -55,6 +50,11 @@ type TestResult struct {
 	SampleDate time.Time `json:"sampleDate"`
 	//Vattentemperatur, enhet: °C
 	TempValue string `json:"tempValue"`
+}
+
+type DetailWithTestResults struct {
+	Detail
+	TestResults []TestResult `json:"testResult"`
 }
 
 type BathWaterProfile struct {
@@ -97,8 +97,6 @@ func (c CoperSmhi) Date() (time.Time, bool) {
 	return time.Time{}, false
 }
 
-var tracer = otel.Tracer("integration-cip-havochvatten")
-
 func New(apiUrl string) HovClient {
 	return &hovClient{
 		apiUrl: apiUrl,
@@ -106,7 +104,7 @@ func New(apiUrl string) HovClient {
 }
 
 func (h hovClient) Details(ctx context.Context) ([]Detail, error) {
-	url := fmt.Sprintf("%s/%s", h.apiUrl, "detail")
+	url := fmt.Sprintf("%s/detail", h.apiUrl)
 	b, status, err := get(ctx, url)
 	if err != nil {
 		return nil, err
@@ -126,7 +124,7 @@ func (h hovClient) Details(ctx context.Context) ([]Detail, error) {
 }
 
 func (h hovClient) Detail(ctx context.Context, nutsCode string) (*Detail, error) {
-	url := fmt.Sprintf("%s/%s/%s", h.apiUrl, "detail", nutsCode)
+	url := fmt.Sprintf("%s/detail/%s", h.apiUrl, nutsCode)
 	b, status, err := get(ctx, url)
 	if err != nil {
 		return nil, err
@@ -150,7 +148,7 @@ func (h hovClient) DetailWithTestResults(ctx context.Context, nutsCode string) (
 }
 
 func (h hovClient) BathWaterProfile(ctx context.Context, nutsCode string) (*BathWaterProfile, error) {
-	url := fmt.Sprintf("%s/%s/%s", h.apiUrl, "testlocationprofile", nutsCode)
+	url := fmt.Sprintf("%s/testlocationprofile/%s", h.apiUrl, nutsCode)
 	b, status, err := get(ctx, url)
 	if err != nil {
 		return nil, err
@@ -176,8 +174,6 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 	ctx, span := tracer.Start(ctx, "integration-cip-havochvatten")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-	log := logging.GetFromContext(ctx)
-
 	httpClient := http.Client{
 		Transport: otelhttp.NewTransport(http.DefaultTransport),
 	}
@@ -189,23 +185,23 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to retrieve data from Hav och Vatten")
+		err = fmt.Errorf("request failed: %s", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
-
 	defer resp.Body.Close()
+
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, http.StatusNotFound, nil
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Error().Msgf("failed to retrieve data from Hav och Vatten, expected status code %d, but got %d", http.StatusOK, resp.StatusCode)
-		return nil, resp.StatusCode, fmt.Errorf("expected status code %d, but got %d", http.StatusOK, resp.StatusCode)
+		err = fmt.Errorf("expectation failed: expected status code %d, but got %d", http.StatusOK, resp.StatusCode)
+		return nil, resp.StatusCode, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to read response body")
+		err = fmt.Errorf("failed to read response body: %s", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 

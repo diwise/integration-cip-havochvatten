@@ -10,7 +10,7 @@ require (
 
 require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
-	github.com/diwise/context-broker v0.0.0-20220616115237-a37ada0d1edf
+	github.com/diwise/context-broker v0.0.0-20220630194749-9dc18eac8779
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

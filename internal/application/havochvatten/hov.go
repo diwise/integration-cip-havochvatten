@@ -89,13 +89,14 @@ type CoperSmhi struct {
 
 func (c CoperSmhi) Date() (time.Time, bool) {
 	if hour, err := strconv.Atoi(c.MeasHour); err == nil {
-		year := time.Now().Year()
-		month := time.Now().Month()
-		day := time.Now().Day()
-		loc := time.Local
-		m := time.Date(year, month, day, hour, 0, 0, 0, loc)
+		now := time.Now()
+		dateStr := fmt.Sprintf("%d-%02d-%02dT%d:00:00+02:00", now.Year(), now.Month(), now.Day(), hour)
+		m, err := time.Parse(time.RFC3339, dateStr)
+		if err != nil {
+			return time.Time{}, false
+		}
 
-		return m, true
+		return m.UTC(), true
 	}
 	return time.Time{}, false
 }

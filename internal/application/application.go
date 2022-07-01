@@ -95,8 +95,8 @@ func (a app) CreateWaterQualityObserved(ctx context.Context, nutsCodes func() []
 
 		for _, c := range profile.CoperSmhi {
 			if date, ok := c.Date(); ok && c.CopernicusData != "" {
-				if date.After(time.Now().UTC()) {
-					log.Info().Msg("ignoring temp value from the future")
+				if date.After(time.Now()) {
+					log.Info().Msgf("ignoring temp value from the future: %s", date.Format(time.RFC3339))
 					continue
 				}
 

@@ -35,7 +35,7 @@ func main() {
 	}
 
 	if endpoint != "iot" && endpoint != "cip" {
-		logger.Fatal().Msg("select one endpont -endpoint=<iot or cip>")
+		logger.Fatal().Msg("select one endpoint -endpoint=<iot or cip>")
 	}
 
 	hovUrl := env.GetVariableOrDefault(logger, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
@@ -58,7 +58,7 @@ func main() {
 
 		err := lwm2m.CreateTemperatures(ctx, temperatures, iotUrl)
 		if err != nil {
-			logger.Error().Err(err).Msg("unable to send smart data model")
+			logger.Error().Err(err).Msg("unable to lwm2m object")
 		}
 	}
 

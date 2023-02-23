@@ -9,12 +9,20 @@ import (
 	"net/http"
 
 	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
+	"github.com/diwise/service-chassis/pkg/infrastructure/env"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"github.com/farshidtz/senml/v2"
+	"github.com/rs/zerolog"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 )
+
+var tlsSkipVerify bool
+
+func init() {
+	tlsSkipVerify = env.GetVariableOrDefault(zerolog.Logger{}, "TLS_SKIP_VERIFY", "0") == "1"
+}
 
 var tracer = otel.Tracer("integration-cip-havochvatten/lwm2m")
 
@@ -53,14 +61,21 @@ func send(ctx context.Context, url string, pack senml.Pack) error {
 
 	log := logging.GetFromContext(ctx)
 
-	ctx, span := tracer.Start(ctx, "integration-cip-havochvatten/lwm2m")
+	ctx, span := tracer.Start(ctx, "send-object")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	var httpClient http.Client
 
-	httpClient := http.Client{
-		Transport: otelhttp.NewTransport(customTransport),
+	if tlsSkipVerify {
+		customTransport := http.DefaultTransport.(*http.Transport).Clone()
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		httpClient = http.Client{
+			Transport: otelhttp.NewTransport(customTransport),
+		}
+	} else {
+		httpClient = http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		}
 	}
 
 	b, err := json.Marshal(pack)
@@ -73,7 +88,7 @@ func send(ctx context.Context, url string, pack senml.Pack) error {
 		return err
 	}
 
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Type", "application/senml+json")
 
 	resp, err := httpClient.Do(req)
 	if err != nil {

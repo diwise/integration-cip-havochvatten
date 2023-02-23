@@ -21,7 +21,7 @@ func CreateWaterQualityObserved(ctx context.Context, temperatures []model.Temper
 	for _, temp := range temperatures {
 		err := createOrMergeTemperature(ctx, temp, cbClient)
 		if err != nil {
-			logger.Error().Err(err)
+			logger.Error().Err(err).Msg("failed to create/merge entity")
 		}
 	}
 
@@ -48,7 +48,7 @@ func createOrMergeTemperature(ctx context.Context, temp model.Temperature, cbCli
 		decorators.Text("source", temp.Source),
 	}
 
-	id := fiware.WaterQualityObservedIDPrefix + temp.NutsCode
+	id := fiware.WaterQualityObservedIDPrefix + "nuts:" + temp.NutsCode
 
 	fragment, err := entities.NewFragment(properties...)
 	if err != nil {

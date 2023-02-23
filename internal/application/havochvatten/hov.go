@@ -46,7 +46,7 @@ func (h hovClient) Details(ctx context.Context) ([]model.Detail, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if status == http.StatusNotFound {
 		return nil, nil
 	}

@@ -41,7 +41,7 @@ func main() {
 	hovUrl := env.GetVariableOrDefault(logger, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
 
 	hovClient := havochvatten.New(hovUrl)
-	
+
 	temperatures, _ := hovClient.Load(ctx, func() []models.NutsCode {
 		var codes []models.NutsCode
 		nc := strings.Split(nutsCodes, ",")
@@ -59,13 +59,13 @@ func main() {
 		err := lwm2m.CreateTemperatures(ctx, temperatures, iotUrl)
 		if err != nil {
 			logger.Error().Err(err).Msg("unable to send smart data model")
-		}		
+		}
 	}
 
 	if endpoint == "cip" {
 		cipUrl := env.GetVariableOrDie(logger, "CONTEXT_BROKER_URL", "context broker URL")
 		cbClient := client.NewContextBrokerClient(cipUrl)
-		
+
 		err := cip.CreateWaterQualityObserved(ctx, temperatures, cbClient)
 		if err != nil {
 			logger.Error().Err(err).Msg("unable to send smart data model")

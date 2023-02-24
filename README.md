@@ -42,4 +42,6 @@ send fiware data to `CONTEXT_BROKER_URL`
 
 ## Example
 
-    ./integration-cip-havochvatten -nutscodes=SE0A21480000004452 -output=lwm2m
+```bash
+./integration-cip-havochvatten -nutscodes=SE0A21480000004452 -output=lwm2m
+```

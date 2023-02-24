@@ -30,7 +30,7 @@ const (
 	TemperatureURN string = "urn:oma:lwm2m:ext:3303"
 )
 
-func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, iotUrl string) error {
+func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, url string) error {
 	logger := logging.GetFromContext(ctx)
 
 	for _, t := range temperatures {
@@ -40,9 +40,8 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 			continue
 		}
 
-		err = send(ctx, iotUrl, pack)
+		err = send(ctx, url, pack)
 		if err != nil {
-			logger.Error().Err(err).Msg("unable to send lwm2m object")
 			return err
 		}
 	}
@@ -58,8 +57,6 @@ func temperature(ctx context.Context, deviceID string, t models.Temperature) (se
 
 func send(ctx context.Context, url string, pack senml.Pack) error {
 	var err error
-
-	log := logging.GetFromContext(ctx)
 
 	ctx, span := tracer.Start(ctx, "send-object")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
@@ -92,10 +89,9 @@ func send(ctx context.Context, url string, pack senml.Pack) error {
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to send lwm2m object")
+		return err
 	} else if resp.StatusCode != http.StatusCreated {
 		err = fmt.Errorf("unexpected response code %d", resp.StatusCode)
-		log.Error().Err(err).Msg("failed to send lwm2m object")
 	}
 
 	return err

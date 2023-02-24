@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	model "github.com/diwise/integration-cip-havochvatten/internal/application/models"
+	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -18,12 +18,12 @@ import (
 var tracer = otel.Tracer("integration-cip-havochvatten/client")
 
 type HovClient interface {
-	Details(ctx context.Context) ([]model.Detail, error)
-	Detail(ctx context.Context, nutsCode string) (*model.Detail, error)
-	DetailWithTestResults(ctx context.Context, nutsCode string) (*model.DetailWithTestResults, error)
-	BathWaterProfile(ctx context.Context, nutsCode string) (*model.BathWaterProfile, error)
+	Details(ctx context.Context) ([]models.Detail, error)
+	Detail(ctx context.Context, nutsCode string) (*models.Detail, error)
+	DetailWithTestResults(ctx context.Context, nutsCode string) (*models.DetailWithTestResults, error)
+	BathWaterProfile(ctx context.Context, nutsCode string) (*models.BathWaterProfile, error)
 	Source() string
-	Load(ctx context.Context, nutsCodes []model.NutsCode) ([]model.Temperature, error)
+	Load(ctx context.Context, nutsCodes []models.NutsCode) ([]models.Temperature, error)
 }
 
 type hovClient struct {
@@ -40,7 +40,7 @@ func New(apiUrl string) HovClient {
 	}
 }
 
-func (h hovClient) Details(ctx context.Context) ([]model.Detail, error) {
+func (h hovClient) Details(ctx context.Context) ([]models.Detail, error) {
 	url := fmt.Sprintf("%s/detail", h.apiUrl)
 	b, status, err := get(ctx, url)
 	if err != nil {
@@ -51,7 +51,7 @@ func (h hovClient) Details(ctx context.Context) ([]model.Detail, error) {
 		return nil, nil
 	}
 
-	var details []model.Detail
+	var details []models.Detail
 	err = json.Unmarshal(b, &details)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (h hovClient) Details(ctx context.Context) ([]model.Detail, error) {
 	return details, nil
 }
 
-func (h hovClient) Detail(ctx context.Context, nutsCode string) (*model.Detail, error) {
+func (h hovClient) Detail(ctx context.Context, nutsCode string) (*models.Detail, error) {
 	url := fmt.Sprintf("%s/detail/%s", h.apiUrl, nutsCode)
 	b, status, err := get(ctx, url)
 	if err != nil {
@@ -71,7 +71,7 @@ func (h hovClient) Detail(ctx context.Context, nutsCode string) (*model.Detail, 
 		return nil, nil
 	}
 
-	var detail model.Detail
+	var detail models.Detail
 	err = json.Unmarshal(b, &detail)
 	if err != nil {
 		return nil, err
@@ -80,11 +80,11 @@ func (h hovClient) Detail(ctx context.Context, nutsCode string) (*model.Detail, 
 	return &detail, nil
 }
 
-func (h hovClient) DetailWithTestResults(ctx context.Context, nutsCode string) (*model.DetailWithTestResults, error) {
+func (h hovClient) DetailWithTestResults(ctx context.Context, nutsCode string) (*models.DetailWithTestResults, error) {
 	return nil, nil
 }
 
-func (h hovClient) BathWaterProfile(ctx context.Context, nutsCode string) (*model.BathWaterProfile, error) {
+func (h hovClient) BathWaterProfile(ctx context.Context, nutsCode string) (*models.BathWaterProfile, error) {
 	url := fmt.Sprintf("%s/testlocationprofile/%s", h.apiUrl, nutsCode)
 	b, status, err := get(ctx, url)
 	if err != nil {
@@ -95,7 +95,7 @@ func (h hovClient) BathWaterProfile(ctx context.Context, nutsCode string) (*mode
 		return nil, nil
 	}
 
-	var bathWaterProfile model.BathWaterProfile
+	var bathWaterProfile models.BathWaterProfile
 	err = json.Unmarshal(b, &bathWaterProfile)
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 
 	var err error
 
-	ctx, span := tracer.Start(ctx, "integration-cip-havochvatten")
+	ctx, span := tracer.Start(ctx, "get-data")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
 	httpClient := http.Client{
@@ -145,21 +145,19 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 	return body, resp.StatusCode, nil
 }
 
-func (h hovClient) Load(ctx context.Context, nutsCodes []model.NutsCode) ([]model.Temperature, error) {
+func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]models.Temperature, error) {
 	log := logging.GetFromContext(ctx)
 
-	result := make([]model.Temperature, 0)
+	result := make([]models.Temperature, 0)
 
 	for _, nutsCode := range nutsCodes {
-		log.Debug().Msgf("fetch information for %s", nutsCode)
+		log = log.With().Str("NutsCode", string(nutsCode)).Logger()
 
 		detail, err := h.Detail(ctx, string(nutsCode))
 		if err != nil {
 			log.Error().Err(err).Msg("failed to get details")
 			continue
 		}
-
-		log.Debug().Msgf("%s is %s", nutsCode, detail.Name)
 
 		if detail.Temperature == nil {
 			log.Info().Msgf("temperature has not been sampled for this beach %s", detail.Name)
@@ -178,7 +176,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []model.NutsCode) ([]mode
 			continue
 		}
 
-		result = append(result, model.Temperature{
+		result = append(result, models.Temperature{
 			NutsCode: profile.NutsCode,
 			Lat:      profile.Lat,
 			Lon:      profile.Long,
@@ -190,7 +188,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []model.NutsCode) ([]mode
 		for _, c := range profile.CoperSmhi {
 			if date, ok := c.Date(); ok && c.CopernicusData != "" {
 				if t, err := strconv.ParseFloat(c.CopernicusData, 64); err == nil {
-					result = append(result, model.Temperature{
+					result = append(result, models.Temperature{
 						NutsCode: profile.NutsCode,
 						Lat:      profile.Lat,
 						Lon:      profile.Long,

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/diwise/context-broker/pkg/ngsild/client"
-	cip "github.com/diwise/integration-cip-havochvatten/internal/application/cip"
+	"github.com/diwise/integration-cip-havochvatten/internal/application/cip"
 	"github.com/diwise/integration-cip-havochvatten/internal/application/havochvatten"
 	"github.com/diwise/integration-cip-havochvatten/internal/application/lwm2m"
 	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
@@ -24,18 +24,18 @@ func main() {
 	defer cleanup()
 
 	var nutsCodes string
-	var endpoint string
+	var output string
 
 	flag.StringVar(&nutsCodes, "nutscodes", "", "-nutscodes=SE00000,SE00001,SE00002")
-	flag.StringVar(&endpoint, "endpoint", "", "-endpoint=<iotagent or cip>")
+	flag.StringVar(&output, "output", "", "-output=<lwm2m or fiware>")
 	flag.Parse()
 
 	if nutsCodes == "" {
 		logger.Fatal().Msg("at least one nutscode must be specified with -nutscodes")
 	}
 
-	if endpoint != "iot" && endpoint != "cip" {
-		logger.Fatal().Msg("select one endpoint -endpoint=<iot or cip>")
+	if output != "lwm2m" && output != "fiware" {
+		logger.Fatal().Msg("select one endpoint -output=<lwm2m or fiware>")
 	}
 
 	hovUrl := env.GetVariableOrDefault(logger, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
@@ -53,16 +53,16 @@ func main() {
 		return codes
 	}())
 
-	if endpoint == "iot" {
-		iotUrl := env.GetVariableOrDie(logger, "IOT_AGENT", "iot-agent URL")
+	if output == "lwm2m" {
+		lwm2mUrl := env.GetVariableOrDie(logger, "LWM2M_ENDPOINT_URL", "lwm2m endpoint URL")
 
-		err := lwm2m.CreateTemperatures(ctx, temperatures, iotUrl)
+		err := lwm2m.CreateTemperatures(ctx, temperatures, lwm2mUrl)
 		if err != nil {
-			logger.Error().Err(err).Msg("unable to lwm2m object")
+			logger.Error().Err(err).Msg("unable to create lwm2m object")
 		}
 	}
 
-	if endpoint == "cip" {
+	if output == "fiware" {
 		cipUrl := env.GetVariableOrDie(logger, "CONTEXT_BROKER_URL", "context broker URL")
 		cbClient := client.NewContextBrokerClient(cipUrl)
 

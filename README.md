@@ -7,6 +7,7 @@
 #### CONTEXT_BROKER_URL
 
 Url to NGSI-LD Context Broker
+
 #### LWM2M_ENDPOINT_URL
 
 Url to endpoint capable of receiving lwm2m object serialized as senML (application/senml+json) 

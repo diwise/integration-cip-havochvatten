@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"flag"
+	"os"
 	"strings"
 
 	"github.com/diwise/context-broker/pkg/ngsild/client"
@@ -25,13 +27,15 @@ func main() {
 
 	var nutsCodes string
 	var output string
+	var input string
 
 	flag.StringVar(&nutsCodes, "nutscodes", "", "-nutscodes=SE00000,SE00001,SE00002")
 	flag.StringVar(&output, "output", "", "-output=<lwm2m or fiware>")
+	flag.StringVar(&input, "input", "", "-input=<filename>")
 	flag.Parse()
 
-	if nutsCodes == "" {
-		logger.Fatal().Msg("at least one nutscode must be specified with -nutscodes")
+	if nutsCodes == "" && input == "" {
+		logger.Fatal().Msg("at least one nutscode must be specified with -nutscodes or a file with nutscodes with -input")
 	}
 
 	if output != "lwm2m" && output != "fiware" {
@@ -42,11 +46,33 @@ func main() {
 
 	hovClient := havochvatten.New(hovUrl)
 
+	if input != "" {
+		in, err := os.Open(input)
+		if err != nil {
+			panic(err)
+		}
+		defer in.Close()
+
+		scan := bufio.NewScanner(in)
+
+		if len(nutsCodes) > 0 {
+			nutsCodes = nutsCodes + ","
+		}
+
+		for scan.Scan() {
+			nutsCodes += scan.Text() + ","
+		}
+	}
+
 	temperatures, _ := hovClient.Load(ctx, func() []models.NutsCode {
 		var codes []models.NutsCode
 		nc := strings.Split(nutsCodes, ",")
 
 		for _, n := range nc {
+			if n == "" {
+				continue
+			}
+
 			codes = append(codes, models.NutsCode(n))
 		}
 

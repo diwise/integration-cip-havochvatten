@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
@@ -141,6 +142,8 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 		err = fmt.Errorf("failed to read response body: %s", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
+
+	time.Sleep(1 * 1000)
 
 	return body, resp.StatusCode, nil
 }

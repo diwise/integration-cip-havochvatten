@@ -26,19 +26,19 @@ func main() {
 	defer cleanup()
 
 	var nutsCodes string
-	var output string
-	var input string
+	var outputType string
+	var inputFilePath string
 
 	flag.StringVar(&nutsCodes, "nutscodes", "", "-nutscodes=SE00000,SE00001,SE00002")
-	flag.StringVar(&output, "output", "", "-output=<lwm2m or fiware>")
-	flag.StringVar(&input, "input", "", "-input=<filename>")
+	flag.StringVar(&outputType, "output", "", "-output=<lwm2m or fiware>")
+	flag.StringVar(&inputFilePath, "input", "", "-input=<filename>")
 	flag.Parse()
 
-	if nutsCodes == "" && input == "" {
+	if nutsCodes == "" && inputFilePath == "" {
 		logger.Fatal().Msg("at least one nutscode must be specified with -nutscodes or a file with nutscodes with -input")
 	}
 
-	if output != "lwm2m" && output != "fiware" {
+	if outputType != "lwm2m" && outputType != "fiware" {
 		logger.Fatal().Msg("select one endpoint -output=<lwm2m or fiware>")
 	}
 
@@ -46,40 +46,35 @@ func main() {
 
 	hovClient := havochvatten.New(hovUrl)
 
-	if input != "" {
-		in, err := os.Open(input)
+	var codes []string
+	if nutsCodes != "" {
+		codes = strings.Split(nutsCodes, ",")
+	}
+
+	if inputFilePath != "" {
+		in, err := os.Open(inputFilePath)
 		if err != nil {
 			panic(err)
 		}
 		defer in.Close()
 
 		scan := bufio.NewScanner(in)
-
-		if len(nutsCodes) > 0 {
-			nutsCodes = nutsCodes + ","
-		}
-
 		for scan.Scan() {
-			nutsCodes += scan.Text() + ","
+			codes = append(codes, scan.Text())
 		}
 	}
 
-	temperatures, _ := hovClient.Load(ctx, func() []models.NutsCode {
-		var codes []models.NutsCode
-		nc := strings.Split(nutsCodes, ",")
+	convert := func (strs []string) []models.NutsCode {
+		nc := make([]models.NutsCode, 0)
+		for _, s := range strs {
+			nc = append(nc, models.NutsCode(s))
+		} 
+		return nc
+	}
 
-		for _, n := range nc {
-			if n == "" {
-				continue
-			}
+	temperatures, _ := hovClient.Load(ctx, convert(codes))
 
-			codes = append(codes, models.NutsCode(n))
-		}
-
-		return codes
-	}())
-
-	if output == "lwm2m" {
+	if outputType == "lwm2m" {
 		lwm2mUrl := env.GetVariableOrDie(logger, "LWM2M_ENDPOINT_URL", "lwm2m endpoint URL")
 
 		err := lwm2m.CreateTemperatures(ctx, temperatures, lwm2mUrl)
@@ -88,7 +83,7 @@ func main() {
 		}
 	}
 
-	if output == "fiware" {
+	if outputType == "fiware" {
 		cipUrl := env.GetVariableOrDie(logger, "CONTEXT_BROKER_URL", "context broker URL")
 		cbClient := client.NewContextBrokerClient(cipUrl)
 

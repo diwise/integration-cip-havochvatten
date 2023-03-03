@@ -143,7 +143,7 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 		return nil, http.StatusInternalServerError, err
 	}
 
-	time.Sleep(1 * 1000)
+	time.Sleep(1 * time.Second)
 
 	return body, resp.StatusCode, nil
 }

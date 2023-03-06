@@ -40,6 +40,8 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 			continue
 		}
 
+		logger.Debug().Msgf("POST temperature for %s", t.NutsCode)
+
 		err = send(ctx, url, pack)
 		if err != nil {
 			return err

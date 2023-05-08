@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
@@ -62,7 +63,7 @@ func (h hovClient) Details(ctx context.Context) ([]models.Detail, error) {
 }
 
 func (h hovClient) Detail(ctx context.Context, nutsCode string) (*models.Detail, error) {
-	url := fmt.Sprintf("%s/detail/%s", h.apiUrl, nutsCode)
+	url := fmt.Sprintf("%s/detail/%s", h.apiUrl, strings.ToUpper(nutsCode))
 	b, status, err := get(ctx, url)
 	if err != nil {
 		return nil, err
@@ -86,7 +87,7 @@ func (h hovClient) DetailWithTestResults(ctx context.Context, nutsCode string) (
 }
 
 func (h hovClient) BathWaterProfile(ctx context.Context, nutsCode string) (*models.BathWaterProfile, error) {
-	url := fmt.Sprintf("%s/testlocationprofile/%s", h.apiUrl, nutsCode)
+	url := fmt.Sprintf("%s/testlocationprofile/%s", h.apiUrl, strings.ToUpper(nutsCode))
 	b, status, err := get(ctx, url)
 	if err != nil {
 		return nil, err

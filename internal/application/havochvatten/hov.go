@@ -198,7 +198,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 						Lon:      profile.Long,
 						Date:     date,
 						Temp:     t,
-						Source:   "https://www.smhi.se/",
+						Source:   "https://www.smhi.se",
 					})
 				}
 			}

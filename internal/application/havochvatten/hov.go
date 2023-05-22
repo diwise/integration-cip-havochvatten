@@ -155,7 +155,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 	result := make([]models.Temperature, 0)
 
 	for _, nutsCode := range nutsCodes {
-		logger = log.With().Str("NutsCode", string(nutsCode)).Logger()
+		logger := log.With().Str("NutsCode", string(nutsCode)).Logger()
 
 		detail, err := h.Detail(ctx, string(nutsCode))
 		if err != nil {

@@ -155,28 +155,28 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 	result := make([]models.Temperature, 0)
 
 	for _, nutsCode := range nutsCodes {
-		log = log.With().Str("NutsCode", string(nutsCode)).Logger()
+		logger = log.With().Str("NutsCode", string(nutsCode)).Logger()
 
 		detail, err := h.Detail(ctx, string(nutsCode))
 		if err != nil {
-			log.Error().Err(err).Msg("failed to get details")
+			logger.Error().Err(err).Msg("failed to get details")
 			continue
 		}
 
 		if detail.Temperature == nil {
-			log.Info().Msgf("temperature has not been sampled for this beach %s", detail.Name)
+			logger.Info().Msgf("temperature has not been sampled for this beach %s", detail.Name)
 			continue
 		}
 
 		profile, err := h.BathWaterProfile(ctx, string(nutsCode))
 		if err != nil {
-			log.Error().Err(err).Msg("failed to get BathWaterProfile")
+			logger.Error().Err(err).Msg("failed to get BathWaterProfile")
 			continue
 		}
 
 		t, err := strconv.ParseFloat(*detail.Temperature, 64)
 		if err != nil {
-			log.Error().Err(err).Msgf("failed to convert temperature value %s", *detail.Temperature)
+			logger.Error().Err(err).Msgf("failed to convert temperature value %s", *detail.Temperature)
 			continue
 		}
 

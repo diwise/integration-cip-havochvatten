@@ -34,13 +34,15 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 	logger := logging.GetFromContext(ctx)
 
 	for _, t := range temperatures {
+		log := logger.With().Str("NutsCode", t.NutsCode).Logger()
+
 		pack, err := temperature(ctx, t.NutsCode, t)
 		if err != nil {
-			logger.Error().Err(err).Msg("unable to create lwm2m temperature object")
+			log.Error().Err(err).Msg("unable to create lwm2m temperature object")
 			continue
 		}
 
-		logger.Debug().Msgf("POST temperature for %s", t.NutsCode)
+		log.Debug().Msg("POST temperature")
 
 		err = send(ctx, url, pack)
 		if err != nil {

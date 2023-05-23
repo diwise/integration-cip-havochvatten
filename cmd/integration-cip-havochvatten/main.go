@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	serviceName string = "integration-cip-havochvatten"
-    OutputTypeLwm2m string = "lwm2m"
+	serviceName      string = "integration-cip-havochvatten"
+	OutputTypeLwm2m  string = "lwm2m"
 	OutputTypeFiware string = "fiware"
 )
 
@@ -90,11 +90,11 @@ func main() {
 		}
 	}
 
-	convert := func (strs []string) []models.NutsCode {
+	convert := func(strs []string) []models.NutsCode {
 		nc := make([]models.NutsCode, 0)
 		for _, s := range strs {
 			nc = append(nc, models.NutsCode(s))
-		} 
+		}
 		return nc
 	}
 

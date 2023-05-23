@@ -49,7 +49,7 @@ func createOrMergeTemperature(ctx context.Context, temp models.Temperature, cbCl
 	}
 
 	id := fiware.WaterQualityObservedIDPrefix + "nuts:" + temp.NutsCode
-	
+
 	fragment, err := entities.NewFragment(properties...)
 	if err != nil {
 		return fmt.Errorf("unable to create new fragment for %s, %w", id, err)

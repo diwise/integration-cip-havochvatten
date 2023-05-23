@@ -164,7 +164,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 		}
 
 		if detail.Temperature == nil {
-			logger.Info().Msgf("temperature has not been sampled for this beach %s", detail.Name)
+			logger.Info().Msgf("temperature has not been sampled for %s", detail.Name)
 			continue
 		}
 

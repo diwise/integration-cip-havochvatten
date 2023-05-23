@@ -17,7 +17,11 @@ import (
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y"
 )
 
-const serviceName string = "integration-cip-havochvatten"
+const (
+	serviceName      string = "integration-cip-havochvatten"
+	OutputTypeLwm2m  string = "lwm2m"
+	OutputTypeFiware string = "fiware"
+)
 
 func main() {
 	serviceVersion := buildinfo.SourceVersion()
@@ -38,11 +42,33 @@ func main() {
 		logger.Fatal().Msg("at least one nutscode must be specified with -nutscodes or a file with nutscodes with -input")
 	}
 
-	if outputType != "lwm2m" && outputType != "fiware" {
-		logger.Fatal().Msg("select one endpoint -output=<lwm2m or fiware>")
+	lwm2mUrl := env.GetVariableOrDefault(logger, "LWM2M_ENDPOINT_URL", "")
+	cipUrl := env.GetVariableOrDefault(logger, "CONTEXT_BROKER_URL", "")
+	hovUrl := env.GetVariableOrDefault(logger, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
+
+	if outputType == OutputTypeFiware {
+		if lwm2mUrl == "" {
+			logger.Fatal().Msg("no URL to lwm2m endpoint specified using env. var LWM2M_ENDPOINT_URL")
+		}
 	}
 
-	hovUrl := env.GetVariableOrDefault(logger, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
+	if outputType == OutputTypeFiware {
+		if cipUrl == "" {
+			logger.Fatal().Msg("no URL to context broker specified using env. var CONTEXT_BROKER_URL")
+		}
+	}
+
+	if outputType == "" {
+		if lwm2mUrl != "" {
+			outputType = OutputTypeLwm2m
+		} else if cipUrl != "" {
+			outputType = OutputTypeFiware
+		}
+	}
+
+	if outputType == "" {
+		logger.Fatal().Msg("no output type selected")
+	}
 
 	hovClient := havochvatten.New(hovUrl)
 
@@ -64,27 +90,24 @@ func main() {
 		}
 	}
 
-	convert := func (strs []string) []models.NutsCode {
+	convert := func(strs []string) []models.NutsCode {
 		nc := make([]models.NutsCode, 0)
 		for _, s := range strs {
 			nc = append(nc, models.NutsCode(s))
-		} 
+		}
 		return nc
 	}
 
 	temperatures, _ := hovClient.Load(ctx, convert(codes))
 
-	if outputType == "lwm2m" {
-		lwm2mUrl := env.GetVariableOrDie(logger, "LWM2M_ENDPOINT_URL", "lwm2m endpoint URL")
-
+	if outputType == OutputTypeLwm2m {
 		err := lwm2m.CreateTemperatures(ctx, temperatures, lwm2mUrl)
 		if err != nil {
 			logger.Error().Err(err).Msg("unable to create lwm2m object")
 		}
 	}
 
-	if outputType == "fiware" {
-		cipUrl := env.GetVariableOrDie(logger, "CONTEXT_BROKER_URL", "context broker URL")
+	if outputType == OutputTypeFiware {
 		cbClient := client.NewContextBrokerClient(cipUrl)
 
 		err := cip.CreateWaterQualityObserved(ctx, temperatures, cbClient)

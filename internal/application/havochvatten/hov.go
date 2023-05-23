@@ -189,17 +189,22 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 			Source:   h.Source(),
 		})
 
+		soon := time.Now().UTC().Add(5 * time.Minute)
+
 		for _, c := range profile.CoperSmhi {
 			if date, ok := c.Date(); ok && c.CopernicusData != "" {
-				if t, err := strconv.ParseFloat(c.CopernicusData, 64); err == nil {
-					result = append(result, models.Temperature{
-						NutsCode: profile.NutsCode,
-						Lat:      profile.Lat,
-						Lon:      profile.Long,
-						Date:     date,
-						Temp:     t,
-						Source:   "https://www.smhi.se",
-					})
+				// Exclude temperature values from the future
+				if date.Before(soon) {
+					if t, err := strconv.ParseFloat(c.CopernicusData, 64); err == nil {
+						result = append(result, models.Temperature{
+							NutsCode: profile.NutsCode,
+							Lat:      profile.Lat,
+							Lon:      profile.Long,
+							Date:     date,
+							Temp:     t,
+							Source:   "https://www.smhi.se",
+						})
+					}
 				}
 			}
 		}

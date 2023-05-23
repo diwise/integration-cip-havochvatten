@@ -46,7 +46,7 @@ func main() {
 	cipUrl := env.GetVariableOrDefault(logger, "CONTEXT_BROKER_URL", "")
 	hovUrl := env.GetVariableOrDefault(logger, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
 
-	if outputType == OutputTypeFiware {
+	if outputType == OutputTypeLwm2m {
 		if lwm2mUrl == "" {
 			logger.Fatal().Msg("no URL to lwm2m endpoint specified using env. var LWM2M_ENDPOINT_URL")
 		}

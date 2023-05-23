@@ -159,7 +159,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 
 		detail, err := h.Detail(ctx, string(nutsCode))
 		if err != nil {
-			logger.Error().Err(err).Msgf("failed to get details for %s", string(nutsCode))
+			logger.Error().Err(err).Msg("failed to get details")
 			continue
 		}
 

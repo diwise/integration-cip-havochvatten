@@ -185,23 +185,28 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 			logger.Debug().Msgf("could not fetch sampled temperature for %s", profile.Name)
 		}
 
+		soon := time.Now().UTC().Add(5 * time.Minute)
+
 		for _, c := range profile.CoperSmhi {
 			if date, ok := c.Date(); ok && c.CopernicusData != "" {
-				if t, err := strconv.ParseFloat(c.CopernicusData, 64); err == nil {
-					coperSmhi = true
-					result = append(result, models.Temperature{
-						NutsCode: profile.NutsCode,
-						Lat:      profile.Lat,
-						Lon:      profile.Long,
-						Date:     date,
-						Temp:     t,
-						Source:   "https://www.smhi.se",
-					})
+				// Exclude temperature values from the future
+				if date.Before(soon) {
+					if t, err := strconv.ParseFloat(c.CopernicusData, 64); err == nil {
+						coperSmhi = true
+						result = append(result, models.Temperature{
+							NutsCode: profile.NutsCode,
+							Lat:      profile.Lat,
+							Lon:      profile.Long,
+							Date:     date,
+							Temp:     t,
+							Source:   "https://www.smhi.se",
+						})
+					}
 				}
 			}
 		}
 
-		logger.Info().Msgf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded, ",sampleTemp, coperSmhi, profile.Name, i+1)
+		logger.Info().Msgf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded, ", sampleTemp, coperSmhi, profile.Name, i+1)
 
 		time.Sleep(500 * time.Millisecond)
 	}

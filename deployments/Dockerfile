@@ -19,6 +19,9 @@ RUN GOOS=linux GOARCH=amd64 go build
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 WORKDIR /opt/diwise
 
+RUN /bin/microdnf reinstall tzdata -y
+ENV TZ=Europe/Stockholm
+
 COPY --from=builder --chown=1001 /app/cmd/integration-cip-havochvatten/integration-cip-havochvatten /opt/diwise
 
 RUN chown 1001 /opt/diwise

@@ -206,7 +206,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 			}
 		}
 
-		logger.Info().Msgf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded, ", sampleTemp, coperSmhi, profile.Name, i+1)
+		logger.Info().Msgf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded", sampleTemp, coperSmhi, profile.Name, i+1)
 
 		time.Sleep(500 * time.Millisecond)
 	}

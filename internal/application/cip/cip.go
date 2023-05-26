@@ -44,7 +44,7 @@ func createOrMergeTemperature(ctx context.Context, temp models.Temperature, cbCl
 		entities.DefaultContext(),
 		decorators.Location(temp.Lat, temp.Lon),
 		decorators.DateObserved(temp.Date.UTC().Format(time.RFC3339Nano)),
-		temperature(temp.Temp, temp.Date),
+		temperature(temp.Temp, temp.Date.UTC()),
 		decorators.Text("source", temp.Source),
 	}
 

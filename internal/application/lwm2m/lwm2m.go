@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
@@ -54,8 +55,12 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 }
 
 func temperature(ctx context.Context, deviceID string, t models.Temperature) (senml.Pack, error) {
-	SensorValue := func(v float64) SenMLDecoratorFunc { return Value("5700", v) }
-	pack := NewSenMLPack(deviceID, TemperatureURN, t.Date, SensorValue(t.Temp))
+	SensorValue := func(v float64, t time.Time) SenMLDecoratorFunc {
+		return Value("5700", v, t, senml.UnitCelsius)
+	}
+
+	pack := NewSenMLPack(deviceID, TemperatureURN, t.Date, SensorValue(t.Temp, t.Date))
+
 	return pack, nil
 }
 

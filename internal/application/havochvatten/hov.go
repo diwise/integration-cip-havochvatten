@@ -144,8 +144,6 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 		return nil, http.StatusInternalServerError, err
 	}
 
-	time.Sleep(1 * time.Second)
-
 	return body, resp.StatusCode, nil
 }
 
@@ -154,19 +152,10 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 
 	result := make([]models.Temperature, 0)
 
-	for _, nutsCode := range nutsCodes {
+	log.Debug().Msgf("loading temperature data for %d nuts codes...", len(nutsCodes))
+
+	for i, nutsCode := range nutsCodes {
 		logger := log.With().Str("NutsCode", string(nutsCode)).Logger()
-
-		detail, err := h.Detail(ctx, string(nutsCode))
-		if err != nil {
-			logger.Error().Err(err).Msg("failed to get details")
-			continue
-		}
-
-		if detail.Temperature == nil {
-			logger.Info().Msgf("temperature has not been sampled for %s", detail.Name)
-			continue
-		}
 
 		profile, err := h.BathWaterProfile(ctx, string(nutsCode))
 		if err != nil {
@@ -174,20 +163,27 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 			continue
 		}
 
-		t, err := strconv.ParseFloat(*detail.Temperature, 64)
-		if err != nil {
-			logger.Error().Err(err).Msgf("failed to convert temperature value %s", *detail.Temperature)
-			continue
-		}
+		sampleTemp := false
+		coperSmhi := false
 
-		result = append(result, models.Temperature{
-			NutsCode: profile.NutsCode,
-			Lat:      profile.Lat,
-			Lon:      profile.Long,
-			Date:     detail.Date(),
-			Temp:     t,
-			Source:   h.Source(),
-		})
+		detail, err := h.Detail(ctx, string(nutsCode))
+
+		if err == nil && detail.Temperature != nil {
+			if t, err := strconv.ParseFloat(*detail.Temperature, 64); err == nil {
+				sampleTemp = true
+
+				result = append(result, models.Temperature{
+					NutsCode: profile.NutsCode,
+					Lat:      profile.Lat,
+					Lon:      profile.Long,
+					Date:     detail.Date(),
+					Temp:     t,
+					Source:   h.Source(),
+				})
+			}
+		} else {
+			logger.Debug().Msgf("could not fetch sampled temperature for %s", profile.Name)
+		}
 
 		soon := time.Now().UTC().Add(5 * time.Minute)
 
@@ -196,6 +192,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 				// Exclude temperature values from the future
 				if date.Before(soon) {
 					if t, err := strconv.ParseFloat(c.CopernicusData, 64); err == nil {
+						coperSmhi = true
 						result = append(result, models.Temperature{
 							NutsCode: profile.NutsCode,
 							Lat:      profile.Lat,
@@ -208,6 +205,10 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 				}
 			}
 		}
+
+		logger.Info().Msgf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded", sampleTemp, coperSmhi, profile.Name, i+1)
+
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	return result, nil

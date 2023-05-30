@@ -29,8 +29,8 @@ func NewSenMLPack(deviceID, baseName string, baseTime time.Time, decorators ...S
 	return s.Pack
 }
 
-func Value(n string, v float64) SenMLDecoratorFunc {
-	return Rec(n, &v, nil, "", nil, "", nil)
+func Value(n string, v float64, t time.Time, unit string) SenMLDecoratorFunc {
+	return Rec(n, &v, nil, "", &t, unit, nil)
 }
 
 func BoolValue(n string, vb bool) SenMLDecoratorFunc {

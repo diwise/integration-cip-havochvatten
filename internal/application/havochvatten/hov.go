@@ -155,7 +155,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 	log.Debug().Msgf("loading temperature data for %d nuts codes...", len(nutsCodes))
 
 	for i, nutsCode := range nutsCodes {
-		logger := log.With().Str("NutsCode", string(nutsCode)).Logger()
+		logger := log.With().Str("nutsCode", string(nutsCode)).Logger()
 
 		profile, err := h.BathWaterProfile(ctx, string(nutsCode))
 		if err != nil {

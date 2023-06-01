@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -34,8 +35,10 @@ const (
 func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, url string) error {
 	logger := logging.GetFromContext(ctx)
 
+	var errs []error
+
 	for _, t := range temperatures {
-		log := logger.With().Str("NutsCode", t.NutsCode).Logger()
+		log := logger.With().Str("nutsCode", t.NutsCode).Logger()
 
 		pack, err := temperature(ctx, t.NutsCode, t)
 		if err != nil {
@@ -47,11 +50,12 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 
 		err = send(ctx, url, pack)
 		if err != nil {
-			return err
+			errs = append(errs, err)
+			continue
 		}
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 func temperature(ctx context.Context, deviceID string, t models.Temperature) (senml.Pack, error) {

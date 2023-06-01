@@ -50,6 +50,7 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 
 		err = send(ctx, url, pack)
 		if err != nil {
+			log.Error().Err(err).Msg("unable to POST lwm2m temperature")
 			errs = append(errs, err)
 			continue
 		}

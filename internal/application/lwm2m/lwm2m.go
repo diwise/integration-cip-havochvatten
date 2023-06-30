@@ -48,7 +48,7 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 			continue
 		}
 
-		log.Info().Msg("sending lwm2m pack")
+		log.Info().Msgf("sending lwm2m pack for %s", t.Date.Format(time.RFC3339))
 
 		err = send(ctx, url, pack)
 		if err != nil {

@@ -199,12 +199,13 @@ func (h hovClient) Load(ctx context.Context, nutsCodes map[string]string) ([]mod
 					if t, err := strconv.ParseFloat(c.CopernicusData, 64); err == nil {
 						coperSmhi = true
 						result = append(result, models.Temperature{
-							NutsCode: profile.NutsCode,
-							Lat:      profile.Lat,
-							Lon:      profile.Long,
-							Date:     date,
-							Temp:     t,
-							Source:   "https://www.smhi.se",
+							NutsCode:   profile.NutsCode,
+							InternalID: internalID,
+							Lat:        profile.Lat,
+							Lon:        profile.Long,
+							Date:       date,
+							Temp:       t,
+							Source:     "https://www.smhi.se",
 						})
 					}
 				}

@@ -27,7 +27,6 @@ ENV TZ=Europe/Stockholm
 COPY --from=builder --chown=1001 /app/cmd/integration-cip-havochvatten/integration-cip-havochvatten /opt/diwise
 
 RUN chown 1001 /opt/diwise
-RUN chmod 700 /opt/diwise
 
 USER 1001
 

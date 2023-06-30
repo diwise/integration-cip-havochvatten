@@ -11,7 +11,6 @@ import (
 	"github.com/diwise/integration-cip-havochvatten/internal/application/cip"
 	"github.com/diwise/integration-cip-havochvatten/internal/application/havochvatten"
 	"github.com/diwise/integration-cip-havochvatten/internal/application/lwm2m"
-	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
 	"github.com/diwise/service-chassis/pkg/infrastructure/buildinfo"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y"
@@ -33,7 +32,7 @@ func main() {
 	var outputType string
 	var inputFilePath string
 
-	flag.StringVar(&nutsCodes, "nutscodes", "", "-nutscodes=SE00000,SE00001,SE00002")
+	flag.StringVar(&nutsCodes, "nutscodes", "", "-nutscodes=SE00000[=id1],SE00001[=id2],SE00002[=id3]")
 	flag.StringVar(&outputType, "output", "", "-output=<lwm2m or fiware>")
 	flag.StringVar(&inputFilePath, "input", "", "-input=<filename>")
 	flag.Parse()
@@ -72,6 +71,8 @@ func main() {
 
 	hovClient := havochvatten.New(hovUrl)
 
+	nutsMap := make(map[string]string, 100)
+
 	var codes []string
 	if nutsCodes != "" {
 		codes = strings.Split(nutsCodes, ",")
@@ -90,15 +91,21 @@ func main() {
 		}
 	}
 
-	convert := func(strs []string) []models.NutsCode {
-		nc := make([]models.NutsCode, 0)
-		for _, s := range strs {
-			nc = append(nc, models.NutsCode(s))
+	for _, code := range codes {
+		pair := strings.Split(code, "=")
+		if len(pair) == 2 {
+			nutsMap[pair[0]] = pair[1]
+		} else if len(pair) == 1 {
+			nutsMap[pair[0]] = pair[0]
+		} else {
+			logger.Fatal().Msgf("invalid code: %s", code)
 		}
-		return nc
 	}
 
-	temperatures, _ := hovClient.Load(ctx, convert(codes))
+	temperatures, err := hovClient.Load(ctx, nutsMap)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed to load temperature data")
+	}
 
 	if outputType == OutputTypeLwm2m {
 		err := lwm2m.CreateTemperatures(ctx, temperatures, lwm2mUrl)

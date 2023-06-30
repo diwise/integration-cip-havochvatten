@@ -74,12 +74,11 @@ func (c CoperSmhi) Date() (time.Time, bool) {
 }
 
 type Temperature struct {
-	NutsCode string    `json:"nutsCode"`
-	Lat      float64   `json:"lat"`
-	Lon      float64   `json:"lon"`
-	Date     time.Time `json:"date"`
-	Temp     float64   `json:"temperature"`
-	Source   string    `json:"source"`
+	NutsCode   string
+	InternalID string
+	Lat        float64
+	Lon        float64
+	Date       time.Time
+	Temp       float64
+	Source     string
 }
-
-type NutsCode string

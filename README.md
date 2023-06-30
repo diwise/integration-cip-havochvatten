@@ -28,6 +28,10 @@ Specify which nutscodes that should be loaded from Hav och Vatten.
 
     -nutscodes=SE0A21480000004452,SE0A21480000000519,...
 
+Optionally, you can specify what internal id to use with
+
+    -nutscodes=SE0A21480000004452=internal1,SE0A21480000000519=internal2,...
+
 #### output
 
 Specify which output endpoint that should be used, `lwm2m` or `fiware`.

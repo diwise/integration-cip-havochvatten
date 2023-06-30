@@ -25,7 +25,7 @@ type HovClient interface {
 	DetailWithTestResults(ctx context.Context, nutsCode string) (*models.DetailWithTestResults, error)
 	BathWaterProfile(ctx context.Context, nutsCode string) (*models.BathWaterProfile, error)
 	Source() string
-	Load(ctx context.Context, nutsCodes []models.NutsCode) ([]models.Temperature, error)
+	Load(ctx context.Context, nutsCodes map[string]string) ([]models.Temperature, error)
 }
 
 type hovClient struct {
@@ -147,14 +147,18 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 	return body, resp.StatusCode, nil
 }
 
-func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]models.Temperature, error) {
+func (h hovClient) Load(ctx context.Context, nutsCodes map[string]string) ([]models.Temperature, error) {
 	log := logging.GetFromContext(ctx)
 
 	result := make([]models.Temperature, 0)
 
 	log.Debug().Msgf("loading temperature data for %d nuts codes...", len(nutsCodes))
 
-	for i, nutsCode := range nutsCodes {
+	count := 0
+
+	for nutsCode, internalID := range nutsCodes {
+		count += 1
+
 		logger := log.With().Str("nutsCode", string(nutsCode)).Logger()
 
 		profile, err := h.BathWaterProfile(ctx, string(nutsCode))
@@ -173,12 +177,13 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 				sampleTemp = true
 
 				result = append(result, models.Temperature{
-					NutsCode: profile.NutsCode,
-					Lat:      profile.Lat,
-					Lon:      profile.Long,
-					Date:     detail.Date(),
-					Temp:     t,
-					Source:   h.Source(),
+					NutsCode:   profile.NutsCode,
+					InternalID: internalID,
+					Lat:        profile.Lat,
+					Lon:        profile.Long,
+					Date:       detail.Date(),
+					Temp:       t,
+					Source:     h.Source(),
 				})
 			}
 		} else {
@@ -206,7 +211,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes []models.NutsCode) ([]mod
 			}
 		}
 
-		logger.Info().Msgf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded", sampleTemp, coperSmhi, profile.Name, i+1)
+		logger.Debug().Msgf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded", sampleTemp, coperSmhi, profile.Name, count)
 
 		time.Sleep(500 * time.Millisecond)
 	}

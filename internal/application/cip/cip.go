@@ -48,7 +48,7 @@ func createOrMergeTemperature(ctx context.Context, temp models.Temperature, cbCl
 		decorators.Text("source", temp.Source),
 	}
 
-	id := fiware.WaterQualityObservedIDPrefix + "nuts:" + temp.NutsCode
+	id := fiware.WaterQualityObservedIDPrefix + temp.InternalID
 
 	fragment, err := entities.NewFragment(properties...)
 	if err != nil {

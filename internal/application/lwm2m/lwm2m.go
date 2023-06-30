@@ -48,6 +48,8 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 			continue
 		}
 
+		log.Info().Msg("sending lwm2m pack")
+
 		err = send(ctx, url, pack)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to POST lwm2m temperature")

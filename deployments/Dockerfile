@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM docker.io/golang:1.20 AS builder
+FROM --platform=$BUILDPLATFORM docker.io/golang:1.21 AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -16,7 +16,8 @@ WORKDIR /app/cmd/integration-cip-havochvatten
 
 ARG TARGETARCH
 ARG TARGETOS
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build
+
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 WORKDIR /opt/diwise

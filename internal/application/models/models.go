@@ -82,3 +82,24 @@ type Temperature struct {
 	Temp       float64
 	Source     string
 }
+
+func (t Temperature) ID() string {
+	return t.InternalID
+}
+
+func (t Temperature) ObjectID() string {
+	return "3303"
+}
+func (t Temperature) ObjectURN() string {
+	return "urn:oma:lwm2m:ext:3303"
+}
+func (t Temperature) Timestamp() time.Time {
+	return t.Date
+}
+
+type Lwm2mObject interface {
+	ID() string
+	ObjectID() string
+	ObjectURN() string
+	Timestamp() time.Time
+}

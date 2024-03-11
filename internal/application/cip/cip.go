@@ -22,7 +22,8 @@ func CreateWaterQualityObserved(ctx context.Context, temperatures []models.Tempe
 	for _, temp := range temperatures {
 		err := createOrMergeTemperature(ctx, temp, cbClient)
 		if err != nil {
-			logger.Error().Err(err).Msg("failed to create/merge entity")
+			logger.Error("failed to create/merge entity", "err", err.Error())
+			return err
 		}
 	}
 

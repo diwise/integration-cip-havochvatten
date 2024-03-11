@@ -1,8 +1,10 @@
 package lwm2m
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
 	"github.com/farshidtz/senml/v2"
 )
 
@@ -12,14 +14,14 @@ type senML struct {
 	Pack senml.Pack
 }
 
-func NewSenMLPack(deviceID, baseName string, baseTime time.Time, decorators ...SenMLDecoratorFunc) senml.Pack {
+func NewSenMLPack(lwm2mObject models.Lwm2mObject, decorators ...SenMLDecoratorFunc) senml.Pack {
 	s := &senML{}
 
 	s.Pack = append(s.Pack, senml.Record{
-		BaseName:    baseName,
-		BaseTime:    float64(baseTime.Unix()),
+		BaseName:    fmt.Sprintf("%s/%s/", lwm2mObject.ID(), lwm2mObject.ObjectID()),
+		BaseTime:    float64(lwm2mObject.Timestamp().Unix()),
 		Name:        "0",
-		StringValue: deviceID,
+		StringValue: lwm2mObject.ObjectURN(),
 	})
 
 	for _, d := range decorators {

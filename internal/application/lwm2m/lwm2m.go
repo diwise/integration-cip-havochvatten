@@ -66,7 +66,7 @@ func temperature(ctx context.Context, deviceID string, t models.Temperature) (se
 		return Value("5700", v, t, senml.UnitCelsius)
 	}
 
-	pack := NewSenMLPack(deviceID, TemperatureURN, t.Date, SensorValue(t.Temp, t.Date))
+	pack := NewSenMLPack(t, SensorValue(t.Temp, t.Date))
 
 	return pack, nil
 }

@@ -1,7 +1,6 @@
 package lwm2m
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -13,12 +12,11 @@ import (
 
 func TestTemperature(t *testing.T) {
 	is := is.New(t)
-	ctx := context.Background()
 
 	ts := time.Now()
 	id := uuid.New().String()
 
-	pack, err := temperature(ctx, id, models.Temperature{
+	pack, err := createSenMLPackage(models.Temperature{
 		NutsCode:   "SE234098",
 		InternalID: id,
 		Lat:        17.1,

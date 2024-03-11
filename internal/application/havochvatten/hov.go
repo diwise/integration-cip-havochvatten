@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -152,18 +153,18 @@ func (h hovClient) Load(ctx context.Context, nutsCodes map[string]string) ([]mod
 
 	result := make([]models.Temperature, 0)
 
-	log.Debug().Msgf("loading temperature data for %d nuts codes...", len(nutsCodes))
+	log.Debug(fmt.Sprintf("loading temperature data for %d nuts codes...", len(nutsCodes)))	
 
 	count := 0
 
 	for nutsCode, internalID := range nutsCodes {
 		count += 1
 
-		logger := log.With().Str("nutsCode", string(nutsCode)).Logger()
+		logger := log.With(slog.String("nutsCode", string(nutsCode)))
 
 		profile, err := h.BathWaterProfile(ctx, string(nutsCode))
 		if err != nil {
-			logger.Error().Err(err).Msg("failed to get BathWaterProfile")
+			logger.Error("failed to get BathWaterProfile", "err", err.Error())
 			continue
 		}
 
@@ -187,7 +188,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes map[string]string) ([]mod
 				})
 			}
 		} else {
-			logger.Debug().Msgf("could not fetch sampled temperature for %s", profile.Name)
+			logger.Debug("could not fetch sampled temperature", "profile_name", profile.Name)			
 		}
 
 		soon := time.Now().UTC().Add(5 * time.Minute)
@@ -212,7 +213,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes map[string]string) ([]mod
 			}
 		}
 
-		logger.Debug().Msgf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded", sampleTemp, coperSmhi, profile.Name, count)
+		logger.Debug(fmt.Sprintf("temperature [sample: %t, copernicus: %t] for %s (%d) loaded", sampleTemp, coperSmhi, profile.Name, count))
 
 		time.Sleep(500 * time.Millisecond)
 	}

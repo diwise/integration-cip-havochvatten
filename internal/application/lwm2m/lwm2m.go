@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
+	"github.com/diwise/senml"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
-	"github.com/farshidtz/senml/v2"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"

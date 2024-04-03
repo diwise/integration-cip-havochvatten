@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/diwise/integration-cip-havochvatten/internal/application/models"
-	"github.com/farshidtz/senml/v2"
+	"github.com/diwise/senml"
 )
 
 type SenMLDecoratorFunc func(p *senML)

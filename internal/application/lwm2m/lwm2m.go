@@ -41,7 +41,10 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 
 		log.Info(fmt.Sprintf("sending lwm2m pack for %s", t.Date.Format(time.RFC3339)))
 
-		err = send(ctx, url, pack)
+		tmoctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
+
+		err = send(tmoctx, url, pack)
 		if err != nil {
 			log.Error("unable to POST lwm2m temperature", "err", err.Error())
 			errs = append(errs, err)

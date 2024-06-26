@@ -56,11 +56,11 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 }
 
 func createSenMLPackage(t models.Temperature) (senml.Pack, error) {
-	SensorValue := func(v float64, t time.Time) SenMLDecoratorFunc {
-		return Value("5700", v, t, senml.UnitCelsius)
+	SensorValue := func(v float64) SenMLDecoratorFunc {
+		return Value("5700", v, senml.UnitCelsius)
 	}
 
-	pack := NewSenMLPack(t, SensorValue(t.Temp, t.Date))
+	pack := NewSenMLPack(t, SensorValue(t.Temp))
 
 	return pack, nil
 }

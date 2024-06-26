@@ -31,8 +31,8 @@ func NewSenMLPack(lwm2mObject models.Lwm2mObject, decorators ...SenMLDecoratorFu
 	return s.Pack
 }
 
-func Value(n string, v float64, t time.Time, unit string) SenMLDecoratorFunc {
-	return Rec(n, &v, nil, "", &t, unit, nil)
+func Value(n string, v float64, unit string) SenMLDecoratorFunc {
+	return Rec(n, &v, nil, "", nil, unit, nil)
 }
 
 func BoolValue(n string, vb bool) SenMLDecoratorFunc {

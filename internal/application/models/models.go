@@ -2,6 +2,7 @@ package models
 
 import (
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -84,7 +85,7 @@ type Temperature struct {
 }
 
 func (t Temperature) ID() string {
-	return t.InternalID
+	return strings.ToLower(t.InternalID)
 }
 
 func (t Temperature) ObjectID() string {

@@ -25,7 +25,7 @@ const (
 func main() {
 	serviceVersion := buildinfo.SourceVersion()
 
-	ctx, logger, cleanup := o11y.Init(context.Background(), serviceName, serviceVersion)
+	ctx, logger, cleanup := o11y.Init(context.Background(), serviceName, serviceVersion, "json")
 	defer cleanup()
 
 	var nutsCodes string

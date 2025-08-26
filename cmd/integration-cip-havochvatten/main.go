@@ -42,8 +42,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	lwm2mUrl := env.GetVariableOrDefault(ctx, "LWM2M_ENDPOINT_URL", "http://iot-agent:8080/api/v0/messages/lwm2m")
-	cipUrl := env.GetVariableOrDefault(ctx, "CONTEXT_BROKER_URL", "http://context-broker:8080")
+	lwm2mUrl := env.GetVariableOrDefault(ctx, "LWM2M_ENDPOINT_URL", "http://iot-agent/api/v0/messages/lwm2m")
+	cipUrl := env.GetVariableOrDefault(ctx, "CONTEXT_BROKER_URL", "http://context-broker")
 	hovUrl := env.GetVariableOrDefault(ctx, "HOV_BADPLATSEN_URL", "https://badplatsen.havochvatten.se/badplatsen/api")
 
 	if outputType == OutputTypeLwm2m {

@@ -15,3 +15,7 @@
 # vendor/
 
 .vscode/
+
+.zed/
+
+__debug**

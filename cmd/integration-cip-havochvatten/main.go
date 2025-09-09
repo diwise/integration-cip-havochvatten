@@ -37,6 +37,10 @@ func main() {
 	flag.StringVar(&inputFilePath, "input", "", "-input=<filename>")
 	flag.Parse()
 
+	if nutsCodes == "" {
+		nutsCodes = env.GetVariableOrDefault(ctx, "NUTS_CODES", "")
+	}
+
 	if nutsCodes == "" && inputFilePath == "" {
 		logger.Error("at least one nutscode must be specified with -nutscodes or a file with nutscodes with -input")
 		os.Exit(1)
@@ -72,6 +76,8 @@ func main() {
 		logger.Error("no output type selected")
 		os.Exit(1)
 	}
+
+	logger.Debug("starting job", "outputType", outputType, "lwm2mUrl", lwm2mUrl, "cipUrl", cipUrl, "hovUrl", hovUrl, "nutscodes", nutsCodes, "inputFilePath", inputFilePath)
 
 	hovClient := havochvatten.New(hovUrl)
 

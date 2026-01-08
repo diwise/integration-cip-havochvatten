@@ -41,10 +41,11 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 
 		log.Info(fmt.Sprintf("sending lwm2m pack for %s", t.Date.Format(time.RFC3339)))
 
-		tmoctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-		defer cancel()
-
-		err = send(tmoctx, url, pack)
+		err = func() error {
+			tmoctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			defer cancel()
+			return send(tmoctx, url, pack)
+		}()
 		if err != nil {
 			log.Error("unable to POST lwm2m temperature", "err", err.Error())
 			errs = append(errs, err)
@@ -71,8 +72,13 @@ func send(ctx context.Context, url string, pack senml.Pack) error {
 	ctx, span := tracer.Start(ctx, "send-object")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
+	transport := http.DefaultTransport
+	if transport == nil {
+		transport = &http.Transport{}
+	}
+
 	httpClient := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Transport: otelhttp.NewTransport(transport),
 	}
 
 	b, err := json.Marshal(pack)
@@ -90,7 +96,10 @@ func send(ctx context.Context, url string, pack senml.Pack) error {
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return err
-	} else if resp.StatusCode != http.StatusCreated {
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
 		err = fmt.Errorf("unexpected response code %d", resp.StatusCode)
 	}
 

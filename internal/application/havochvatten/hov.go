@@ -114,8 +114,13 @@ func get(ctx context.Context, url string) ([]byte, int, error) {
 	ctx, span := tracer.Start(ctx, "get-data")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
+	transport := http.DefaultTransport
+	if transport == nil {
+		transport = &http.Transport{}
+	}
+
 	httpClient := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Transport: otelhttp.NewTransport(transport),
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -153,16 +158,16 @@ func (h hovClient) Load(ctx context.Context, nutsCodes map[string]string) ([]mod
 
 	result := make([]models.Temperature, 0)
 
-	log.Debug(fmt.Sprintf("loading temperature data for %d nuts codes...", len(nutsCodes)))	
+	log.Debug(fmt.Sprintf("loading temperature data for %d nuts codes...", len(nutsCodes)))
 
 	count := 0
 
 	for nutsCode, internalID := range nutsCodes {
 		count += 1
 
-		logger := log.With(slog.String("nutsCode", string(nutsCode)))
+		logger := log.With(slog.String("nutsCode", nutsCode))
 
-		profile, err := h.BathWaterProfile(ctx, string(nutsCode))
+		profile, err := h.BathWaterProfile(ctx, nutsCode)
 		if err != nil {
 			logger.Error("failed to get BathWaterProfile", "err", err.Error())
 			continue
@@ -171,9 +176,9 @@ func (h hovClient) Load(ctx context.Context, nutsCodes map[string]string) ([]mod
 		sampleTemp := false
 		coperSmhi := false
 
-		detail, err := h.Detail(ctx, string(nutsCode))
+		detail, err := h.Detail(ctx, nutsCode)
 
-		if err == nil && detail.Temperature != nil {
+		if err == nil && detail != nil && detail.Temperature != nil {
 			if t, err := strconv.ParseFloat(*detail.Temperature, 64); err == nil {
 				sampleTemp = true
 
@@ -188,7 +193,7 @@ func (h hovClient) Load(ctx context.Context, nutsCodes map[string]string) ([]mod
 				})
 			}
 		} else {
-			logger.Debug("could not fetch sampled temperature", "profile_name", profile.Name)			
+			logger.Debug("could not fetch sampled temperature", "profile_name", profile.Name)
 		}
 
 		soon := time.Now().UTC().Add(5 * time.Minute)

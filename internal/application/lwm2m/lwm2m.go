@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -26,16 +25,14 @@ const (
 )
 
 func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, url string) error {
-	logger := logging.GetFromContext(ctx)
+	log := logging.GetFromContext(ctx)
 
 	var errs []error
 
 	for _, t := range temperatures {
-		log := logger.With(slog.String("nutsCode", t.NutsCode)).With(slog.String("device_id", t.InternalID))
-
-		pack, err := createSenMLPackage(t)
+		pack, err := createSenMLPackage(ctx, t)
 		if err != nil {
-			log.Error("unable to create lwm2m temperature object", "err", err.Error())
+			log.Error("unable to create lwm2m temperature object", "nutsCode", t.NutsCode, "device_id", t.InternalID, "err", err.Error())
 			continue
 		}
 
@@ -47,7 +44,7 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 			return send(tmoctx, url, pack)
 		}()
 		if err != nil {
-			log.Error("unable to POST lwm2m temperature", "err", err.Error())
+			log.Error("unable to POST lwm2m temperature", "nutsCode", t.NutsCode, "device_id", t.InternalID, "err", err.Error())
 			errs = append(errs, err)
 			continue
 		}
@@ -56,7 +53,11 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 	return errors.Join(errs...)
 }
 
-func createSenMLPackage(t models.Temperature) (senml.Pack, error) {
+func createSenMLPackage(ctx context.Context, t models.Temperature) (senml.Pack, error) {
+	log := logging.GetFromContext(ctx)
+	
+	log.Debug("creating lwm2m temperature object", "nutsCode", t.NutsCode, "device_id", t.InternalID, "date", t.Date.Format(time.RFC3339), "temp", t.Temp)
+
 	SensorValue := func(v float64) SenMLDecoratorFunc {
 		return Value("5700", v, senml.UnitCelsius)
 	}

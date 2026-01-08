@@ -22,7 +22,9 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 WORKDIR /opt/diwise
 
-RUN /bin/microdnf reinstall tzdata -y
+# RUN /bin/microdnf reinstall tzdata -y
+RUN /bin/microdnf update -y && /bin/microdnf install -y tzdata
+
 ENV TZ=Europe/Stockholm
 
 COPY --from=builder --chown=1001 /app/cmd/integration-cip-havochvatten/integration-cip-havochvatten /opt/diwise

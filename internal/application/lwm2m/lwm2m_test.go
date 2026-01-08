@@ -12,11 +12,12 @@ import (
 
 func TestTemperature(t *testing.T) {
 	is := is.New(t)
+	ctx := t.Context()
 
 	ts := time.Now()
 	id := uuid.New().String()
 
-	pack, err := createSenMLPackage(models.Temperature{
+	pack, err := createSenMLPackage(ctx, models.Temperature{
 		NutsCode:   "SE234098",
 		InternalID: id,
 		Lat:        17.1,

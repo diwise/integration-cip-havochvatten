@@ -55,8 +55,8 @@ func CreateTemperatures(ctx context.Context, temperatures []models.Temperature, 
 
 func createSenMLPackage(ctx context.Context, t models.Temperature) (senml.Pack, error) {
 	log := logging.GetFromContext(ctx)
-	
-	log.Debug("creating lwm2m temperature object", "nutsCode", t.NutsCode, "device_id", t.InternalID, "date", t.Date.Format(time.RFC3339), "temp", t.Temp)
+
+	log.Debug("creating lwm2m temperature object", "nutsCode", t.NutsCode, "device_id", t.InternalID, "date", t.Date.Format(time.RFC3339), "temp", t.Temp, "source", t.Source)
 
 	SensorValue := func(v float64) SenMLDecoratorFunc {
 		return Value("5700", v, senml.UnitCelsius)

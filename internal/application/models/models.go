@@ -16,7 +16,7 @@ type Detail struct {
 }
 
 func (d Detail) Date() time.Time {
-	if d.Temperature == nil {
+	if d.Temperature == nil || d.SampleDate == nil {
 		return time.Time{}
 	}
 	return time.Unix(*d.SampleDate/1000, 0)
